@@ -2,24 +2,24 @@ package main
 
 import (
 	"bufio"
+	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
+	"log"
 	"os"
 	"os/exec"
-	"strings"
-	"log"
-	"io/ioutil"
-	"encoding/json"
-	"sync"
 	"os/user"
+	"strings"
+	"sync"
 )
 
 type database struct {
 	AppServer string
 	DbServer  string
 	DbName    string
-	User string
-	Pass string
+	User      string
+	Pass      string
 }
 
 func main() {
@@ -109,9 +109,9 @@ func runSQL(db database, sql string, key string, prependKey bool) {
 
 	var cmd *exec.Cmd
 	if db.AppServer != "" {
-		cmd = exec.Command("ssh", db.AppServer, mysql + options + query)
+		cmd = exec.Command("ssh", db.AppServer, mysql+options+query)
 	} else {
-		args := append(strings.Split(options, " "), query)
+		args := append(trimEmpty(strings.Split(options, " ")), sql)
 		cmd = exec.Command("mysql", args...)
 	}
 
@@ -151,4 +151,14 @@ func readInput(r io.Reader) string {
 		}
 		ls = append(ls, strings.TrimSpace(s))
 	}
+}
+
+func trimEmpty(s []string) []string {
+	var r []string
+	for _, str := range s {
+		if str != "" {
+			r = append(r, str)
+		}
+	}
+	return r
 }
