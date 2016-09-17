@@ -104,11 +104,11 @@ func runSQL(db database, sql string, key string, prependKey bool) {
 	}
 
 	mysql := "mysql"
-	options := fmt.Sprintf(" -Nsr %v%v%v %v -e ", userOption, passOption, hostOption, db.DbName)
-	query := fmt.Sprintf("\" %v \"", sql)
+	options := fmt.Sprintf(" -Nsr %v%v%v%v -e ", userOption, passOption, hostOption, db.DbName)
 
 	var cmd *exec.Cmd
 	if db.AppServer != "" {
+		query := fmt.Sprintf(`'%v'`, strings.Replace(sql, `'`, `'"'"'`, -1))
 		cmd = exec.Command("ssh", db.AppServer, mysql+options+query)
 	} else {
 		args := append(trimEmpty(strings.Split(options, " ")), sql)
