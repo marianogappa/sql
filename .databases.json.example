@@ -15,5 +15,5 @@
         "dbServer": "prod.db.server.com",
         "user": "user",
         "pass": "pass"
-    },
+    }
 }
