@@ -1,0 +1,19 @@
+{
+    "local": {
+        "dbName": "test_database"
+    },
+    "staging": {
+        "appServer": "staging.server.com",
+        "dbName": "staging_database",
+        "dbServer": "staging.db.server.com",
+        "user": "root",
+        "pass": ""
+    },
+    "prod": {
+        "appServer": "prod.server.com",
+        "dbName": "prod_database",
+        "dbServer": "prod.db.server.com",
+        "user": "user",
+        "pass": "pass"
+    },
+}
