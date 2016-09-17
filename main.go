@@ -25,7 +25,7 @@ type database struct {
 func main() {
 	usr, err := user.Current()
 	if err != nil {
-		log.Fatalf("Couldn't obtain the current user err=%v", err)
+		usage("Couldn't obtain the current user err=%v", err)
 	}
 
 	databasesFile := usr.HomeDir + "/.databases.json"
@@ -33,31 +33,31 @@ func main() {
 
 	byts, err := ioutil.ReadFile(databasesFile)
 	if err != nil {
-		log.Fatalf("Couldn't read [%v] file. err=%v", databasesFile, err)
+		usage("Couldn't read [%v] file. err=%v", databasesFile, err)
 	}
 
 	err = json.Unmarshal(byts, &databases)
 	if err != nil {
-		log.Fatalf("Couldn't unmarshal [%v] file. err=%v", databasesFile, err)
+		usage("Couldn't unmarshal [%v] file. err=%v", databasesFile, err)
 	}
 
 	if len(databases) == 0 {
-		log.Fatalf("Couldn't find any database configurations in [%v] file.", databasesFile)
+		usage("Couldn't find any database configurations in [%v] file.", databasesFile)
 	}
 
 	sql := readInput(os.Stdin)
 	if len(sql) <= 3 {
-		log.Fatal("No SQL to run. Exiting.")
+		usage("No SQL to run. Exiting.")
 	}
 
 	if len(os.Args[1:]) == 0 {
-		log.Fatal("Target database unspecified; where should I run the query?")
+		usage("Target database unspecified; where should I run the query?")
 	}
 
 	targetDatabases := []string{}
 	for _, k := range os.Args[1:] {
 		if _, ok := databases[k]; k != "all" && !ok {
-			log.Fatalf("Target database unknown: [%v]", k)
+			usage("Target database unknown: [%v]", k)
 		}
 		if k == "all" {
 			targetDatabases = nil
