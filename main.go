@@ -115,6 +115,8 @@ func runSQL(db database, sql string, key string, prependKey bool) {
 		cmd = exec.Command("mysql", args...)
 	}
 
+	cmd.Stderr = os.Stderr
+
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
 		log.Printf("Cannot create pipe for running command on %v; not running.\n", key)
@@ -131,7 +133,9 @@ func runSQL(db database, sql string, key string, prependKey bool) {
 		fmt.Println(prepend + scanner.Text())
 	}
 
-	cmd.Process.Kill()
+	if err := cmd.Wait(); err != nil {
+		os.Exit(1)
+	}
 }
 
 func readInput(r io.Reader) string {
