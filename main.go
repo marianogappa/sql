@@ -115,11 +115,15 @@ func runSQL(db database, sql string, key string, prependKey bool) {
 		cmd = exec.Command("mysql", args...)
 	}
 
-	cmd.Stderr = os.Stderr
-
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
-		log.Printf("Cannot create pipe for running command on %v; not running.\n", key)
+		log.Printf("Cannot create pipe for STDOUT of running command on %v; not running.\n", key)
+		return
+	}
+
+	stderr, err := cmd.StderrPipe()
+	if err != nil {
+		log.Printf("Cannot create pipe for STDERR of running command on %v; not running.\n", key)
 		return
 	}
 
@@ -133,9 +137,20 @@ func runSQL(db database, sql string, key string, prependKey bool) {
 		fmt.Println(prepend + scanner.Text())
 	}
 
-	if err := cmd.Wait(); err != nil {
-		os.Exit(1)
+	stderrLines := []string{}
+	scanner = bufio.NewScanner(stderr)
+	for scanner.Scan() {
+		stderrLines = append(stderrLines, scanner.Text())
 	}
+
+	if len(stderrLines) > 0 {
+		log.Println(key + " had errors:")
+		for _, v := range stderrLines {
+			log.Println(key + " [ERROR] " + v)
+		}
+	}
+
+	cmd.Wait()
 }
 
 func readInput(r io.Reader) string {
