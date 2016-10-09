@@ -71,18 +71,26 @@ func main() {
 
 	var wg sync.WaitGroup
 
+	finalResult := true
 	for _, k := range targetDatabases {
 		wg.Add(1)
 		go func(db database, k string) {
 			defer wg.Done()
-			runSQL(db, sql, k, len(targetDatabases) > 1)
+			if r := runSQL(db, sql, k, len(targetDatabases) > 1); !r {
+				finalResult = false
+			}
 		}(databases[k], k)
 	}
 
 	wg.Wait()
+
+	if !finalResult {
+		os.Exit(1)
+	}
+	os.Exit(0)
 }
 
-func runSQL(db database, sql string, key string, prependKey bool) {
+func runSQL(db database, sql string, key string, prependKey bool) bool {
 	userOption := ""
 	if db.User != "" {
 		userOption = fmt.Sprintf("-u %v ", db.User)
@@ -118,18 +126,18 @@ func runSQL(db database, sql string, key string, prependKey bool) {
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
 		log.Printf("Cannot create pipe for STDOUT of running command on %v; not running.\n", key)
-		return
+		return false
 	}
 
 	stderr, err := cmd.StderrPipe()
 	if err != nil {
 		log.Printf("Cannot create pipe for STDERR of running command on %v; not running.\n", key)
-		return
+		return false
 	}
 
 	if err := cmd.Start(); err != nil {
 		log.Printf("Cannot start command on %v; not running.\n", key)
-		return
+		return false
 	}
 
 	scanner := bufio.NewScanner(stdout)
@@ -143,14 +151,18 @@ func runSQL(db database, sql string, key string, prependKey bool) {
 		stderrLines = append(stderrLines, scanner.Text())
 	}
 
+	cmd.Wait()
+
+	result := true
 	if len(stderrLines) > 0 {
+		result = false
 		log.Println(key + " had errors:")
 		for _, v := range stderrLines {
 			log.Println(key + " [ERROR] " + v)
 		}
 	}
 
-	cmd.Wait()
+	return result
 }
 
 func readInput(r io.Reader) string {
