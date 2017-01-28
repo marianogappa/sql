@@ -1,4 +1,4 @@
-# sql [![Build Status](https://img.shields.io/travis/MarianoGappa/parseq.svg)](https://travis-ci.org/MarianoGappa/parseq) [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/MarianoGappa/sd/master/LICENSE)
+# sql [![Build Status](https://img.shields.io/travis/marianogappa/parseq.svg)](https://travis-ci.org/marianogappa/parseq) [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/MarianoGappa/sd/master/LICENSE)
 
 MySQL pipe
 
