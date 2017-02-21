@@ -8,7 +8,7 @@ import (
 func usage(error string, args ...interface{}) {
 	if len(error) > 0 {
 		if len(args) > 0 {
-			fmt.Println(fmt.Sprintf(error, args))
+			fmt.Printf(fmt.Sprintf(error, args...))
 		} else {
 			fmt.Println(error)
 		}
