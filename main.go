@@ -2,14 +2,11 @@ package main
 
 import (
 	"bufio"
-	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
-	"os/user"
 	"strings"
 	"sync"
 )
@@ -23,27 +20,7 @@ type database struct {
 }
 
 func main() {
-	usr, err := user.Current()
-	if err != nil {
-		usage("Couldn't obtain the current user err=%v", err)
-	}
-
-	databasesFile := usr.HomeDir + "/.databases.json"
-	databases := map[string]database{}
-
-	byts, err := ioutil.ReadFile(databasesFile)
-	if err != nil {
-		usage("Couldn't read [%v] file. err=%v", databasesFile, err)
-	}
-
-	err = json.Unmarshal(byts, &databases)
-	if err != nil {
-		usage("Couldn't unmarshal [%v] file. err=%v", databasesFile, err)
-	}
-
-	if len(databases) == 0 {
-		usage("Couldn't find any database configurations in [%v] file.", databasesFile)
-	}
+	databases := mustReadDatabasesConfigFile()
 
 	sql := readInput(os.Stdin)
 	if len(sql) <= 3 {
