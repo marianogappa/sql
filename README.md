@@ -18,7 +18,7 @@ go get -u github.com/MarianoGappa/sql
 
 ## Configuration
 
-Create a `.databases.json` dotfile in your home folder. [This](.databases.json.example) is an example file.
+Create a `.databases.json` dotfile in your home folder or in any [XDG-compliant](https://standards.freedesktop.org/basedir-spec/basedir-spec-latest.html) directory. [This](.databases.json.example) is an example file.
 
 ## Example usages
 
@@ -45,4 +45,4 @@ echo "SELECT * FROM users WHERE name = 'John'" | sql all
 
 ## Contribute
 
-Yes, please.
+If you have an issue with sql, I'd love to [hear about it](https://github.com/marianogappa/sql/issues/new). PRs are welcome. Ping me on [Twitter](https://twitter.com/MarianoGappa) if you want to have a chat about it.
