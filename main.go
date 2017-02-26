@@ -22,13 +22,13 @@ type database struct {
 func main() {
 	databases := mustReadDatabasesConfigFile()
 
+	if len(os.Args[1:]) == 0 {
+		usage("Target database unspecified; where should I run the query?")
+	}
+
 	sql := readInput(os.Stdin)
 	if len(sql) <= 3 {
 		usage("No SQL to run. Exiting.")
-	}
-
-	if len(os.Args[1:]) == 0 {
-		usage("Target database unspecified; where should I run the query?")
 	}
 
 	targetDatabases := []string{}

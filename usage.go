@@ -25,7 +25,7 @@ e.g.
 
   echo "SELECT * FROM users WHERE name = 'John'" | sql all
 
-For more detailed help, please go to: https://github.com/MarianoGappa/sql
+For more detailed help, please go to: https://github.com/marianogappa/sql
 `)
 	os.Exit(1)
 }
