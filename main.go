@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"flag"
 	"fmt"
 	"io"
 	"log"
@@ -19,7 +20,18 @@ type database struct {
 	Pass      string
 }
 
+var help = flag.Bool("help", false, "shows usage")
+
+func init() {
+	flag.BoolVar(help, "h", false, "shows usage")
+}
+
 func main() {
+	flag.Parse()
+	if *help {
+		usage("")
+	}
+
 	databases := mustReadDatabasesConfigFile()
 
 	if len(os.Args[1:]) == 0 {
