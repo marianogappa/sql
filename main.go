@@ -114,18 +114,18 @@ func runSQL(db database, sql string, key string, prependKey bool) bool {
 
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
-		log.Printf("Cannot create pipe for STDOUT of running command on %v; not running.\n", key)
+		log.Printf("Cannot create pipe for STDOUT of running command on %v; not running. err=%v\n", key, err)
 		return false
 	}
 
 	stderr, err := cmd.StderrPipe()
 	if err != nil {
-		log.Printf("Cannot create pipe for STDERR of running command on %v; not running.\n", key)
+		log.Printf("Cannot create pipe for STDERR of running command on %v; not running. err=%v\n", key, err)
 		return false
 	}
 
 	if err := cmd.Start(); err != nil {
-		log.Printf("Cannot start command on %v; not running.\n", key)
+		log.Printf("Cannot start command on %v; not running. err=%v\n", key, err)
 		return false
 	}
 
