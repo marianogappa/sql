@@ -76,7 +76,6 @@ func main() {
 	if !finalResult {
 		os.Exit(1)
 	}
-	os.Exit(0)
 }
 
 func runSQL(db database, sql string, key string, prependKey bool) bool {
