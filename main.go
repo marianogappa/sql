@@ -60,22 +60,19 @@ func main() {
 
 	var wg sync.WaitGroup
 
-	finalResult := true
+	returnCode := 0
 	for _, k := range targetDatabases {
 		wg.Add(1)
 		go func(db database, k string) {
 			defer wg.Done()
 			if r := runSQL(db, sql, k, len(targetDatabases) > 1); !r {
-				finalResult = false
+				returnCode = 1
 			}
 		}(databases[k], k)
 	}
 
 	wg.Wait()
-
-	if !finalResult {
-		os.Exit(1)
-	}
+	os.Exit(returnCode)
 }
 
 func runSQL(db database, sql string, key string, prependKey bool) bool {
