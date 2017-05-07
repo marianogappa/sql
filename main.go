@@ -58,6 +58,9 @@ func main() {
 		targetDatabases = append(targetDatabases, k)
 	}
 
+	out := make(chan string)
+	go println(out)
+
 	var wg sync.WaitGroup
 	wg.Add(len(targetDatabases))
 
@@ -65,7 +68,7 @@ func main() {
 	for _, k := range targetDatabases {
 		go func(db database, k string) {
 			defer wg.Done()
-			if r := runSQL(db, sql, k, len(targetDatabases) > 1); !r {
+			if r := runSQL(db, sql, k, len(targetDatabases) > 1, out); !r {
 				returnCode = 1
 			}
 		}(databases[k], k)
@@ -75,7 +78,7 @@ func main() {
 	os.Exit(returnCode)
 }
 
-func runSQL(db database, sql string, key string, prependKey bool) bool {
+func runSQL(db database, sql string, key string, prependKey bool, out chan string) bool {
 	userOption := ""
 	if db.User != "" {
 		userOption = fmt.Sprintf("-u %v ", db.User)
@@ -127,7 +130,7 @@ func runSQL(db database, sql string, key string, prependKey bool) bool {
 
 	scanner := bufio.NewScanner(stdout)
 	for scanner.Scan() {
-		fmt.Println(prepend + scanner.Text())
+		out <- prepend + scanner.Text()
 	}
 
 	stderrLines := []string{}
@@ -148,6 +151,12 @@ func runSQL(db database, sql string, key string, prependKey bool) bool {
 	}
 
 	return result
+}
+
+func println(ss chan string) {
+	for s := range ss {
+		fmt.Println(s)
+	}
 }
 
 func readInput(r io.Reader) string {
