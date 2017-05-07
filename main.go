@@ -59,10 +59,10 @@ func main() {
 	}
 
 	var wg sync.WaitGroup
+	wg.Add(len(targetDatabases))
 
 	returnCode := 0
 	for _, k := range targetDatabases {
-		wg.Add(1)
 		go func(db database, k string) {
 			defer wg.Done()
 			if r := runSQL(db, sql, k, len(targetDatabases) > 1); !r {
