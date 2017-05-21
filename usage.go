@@ -15,13 +15,26 @@ func usage(error string, args ...interface{}) {
 		fmt.Println()
 	}
 
-	fmt.Println(`usage: ... | sql target_1 [target_2 ...]
+	fmt.Println(`sql usage:
+  anything | sql [-v] target_1
+  anything | sql target_1 [target_2...]
+  anything | sql all
 
-e.g.
+By default, no column names are output.
+Querying one target outputs one line per result row, in TSV/tab separated value format.
+Querying multiple targets outputs one line per target per result row as TSV rows, prepended with [target_name\t].
+Querying "all" targets every configured database.
+
+The -v flag modifies the output to include +--+ separators and column names.
+Using -v with multiple targets is not advised.
+
+Examples:
 
   cat query.sql | sql test_db
 
   sed 's/2015/2016/g' query_for_2015.sql | sql db1 db2 db3
+
+  echo "SELECT * FROM users LIMIT 1\G" | sql -v db1
 
   echo "SELECT * FROM users WHERE name = 'John'" | sql all
 
