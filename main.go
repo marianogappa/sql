@@ -195,7 +195,7 @@ func trimEmpty(s []string) []string {
 }
 
 func awaitSignal(cancel context.CancelFunc) {
-	signals := make(chan os.Signal, 1)
+	signals := make(chan os.Signal)
 	signal.Notify(signals, syscall.SIGINT, syscall.SIGTERM)
 	<-signals
 	cancel()
