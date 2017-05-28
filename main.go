@@ -21,11 +21,11 @@ type database struct {
 }
 
 var help = flag.Bool("help", false, "shows usage")
-var verbose = flag.Bool("verbose", false, "includes column names in output")
+var pretty = flag.Bool("pretty", false, "includes column names in output")
 
 func init() {
 	flag.BoolVar(help, "h", false, "shows usage")
-	flag.BoolVar(verbose, "v", false, "includes column names in output")
+	flag.BoolVar(pretty, "p", false, "includes column names in output")
 }
 
 func main() {
@@ -47,7 +47,7 @@ func main() {
 
 	targetDatabases := []string{}
 	for _, k := range os.Args[1:] {
-		if k == "-v" || k == "--verbose" {
+		if k == "-p" || k == "--pretty" {
 			continue
 		}
 		if _, ok := databases[k]; k != "all" && !ok {
@@ -107,7 +107,7 @@ func runSQL(db database, sql string, key string, prependKey bool) bool {
 
 	mysql := "mysql"
 	options := fmt.Sprintf(" -Nsr %v%v%v%v -e ", userOption, passOption, hostOption, db.DbName)
-	if *verbose {
+	if *pretty {
 		options = fmt.Sprintf(" -vt %v%v%v%v -e ", userOption, passOption, hostOption, db.DbName)
 	}
 
