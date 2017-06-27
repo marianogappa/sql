@@ -24,6 +24,7 @@ type database struct {
 }
 
 var help = flag.Bool("help", false, "shows usage")
+var printLock sync.Mutex
 
 func init() {
 	flag.BoolVar(help, "h", false, "shows usage")
@@ -61,9 +62,6 @@ func main() {
 		targetDatabases = append(targetDatabases, k)
 	}
 
-	out := make(chan string)
-	go println(out)
-
 	quitContext, cancel := context.WithCancel(context.Background())
 	go awaitSignal(cancel)
 
@@ -74,7 +72,7 @@ func main() {
 	for _, k := range targetDatabases {
 		go func(db database, k string) {
 			defer wg.Done()
-			if r := runSQL(quitContext, db, sql, k, len(targetDatabases) > 1, out); !r {
+			if r := runSQL(quitContext, db, sql, k, len(targetDatabases) > 1); !r {
 				returnCode = 1
 			}
 		}(databases[k], k)
@@ -84,7 +82,7 @@ func main() {
 	os.Exit(returnCode)
 }
 
-func runSQL(quitContext context.Context, db database, sql string, key string, prependKey bool, out chan string) bool {
+func runSQL(quitContext context.Context, db database, sql string, key string, prependKey bool) bool {
 	userOption := ""
 	if db.User != "" {
 		userOption = fmt.Sprintf("-u %v ", db.User)
@@ -136,7 +134,7 @@ func runSQL(quitContext context.Context, db database, sql string, key string, pr
 
 	scanner := bufio.NewScanner(stdout)
 	for scanner.Scan() {
-		out <- prepend + scanner.Text()
+		println(prepend + scanner.Text())
 	}
 
 	stderrLines := []string{}
@@ -159,10 +157,10 @@ func runSQL(quitContext context.Context, db database, sql string, key string, pr
 	return result
 }
 
-func println(ss chan string) {
-	for s := range ss {
-		fmt.Println(s)
-	}
+func println(s string) {
+	printLock.Lock()
+	defer printLock.Unlock()
+	fmt.Println(s)
 }
 
 func readInput(r io.Reader) string {
