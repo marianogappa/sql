@@ -2,6 +2,8 @@
 
 MySQL pipe
 
+[Blogpost](https://movio.co/en/blog/improving-with-sql-and-charts/)
+
 ## What does it do?
 
 - `sql` allows you to pipe STDIN (hopefully containing SQL) to one or more pre-configured MySQL databases
