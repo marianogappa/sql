@@ -51,7 +51,7 @@ func main() {
 
 	targetDatabases := []string{}
 	for _, k := range os.Args[1:] {
-		if k == "-p" || k == "--pretty" {
+		if k == "-p" {
 			continue
 		}
 		if _, ok := databases[k]; k != "all" && !ok {
