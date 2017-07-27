@@ -2,14 +2,17 @@ package main
 
 import (
 	"bufio"
+	"context"
 	"flag"
 	"fmt"
 	"io"
 	"log"
 	"os"
 	"os/exec"
+	"os/signal"
 	"strings"
 	"sync"
+	"syscall"
 )
 
 type database struct {
@@ -22,6 +25,7 @@ type database struct {
 
 var help = flag.Bool("help", false, "shows usage")
 var pretty = flag.Bool("pretty", false, "includes column names in output")
+var printLock sync.Mutex
 
 func init() {
 	flag.BoolVar(help, "h", false, "shows usage")
@@ -63,28 +67,27 @@ func main() {
 		targetDatabases = append(targetDatabases, k)
 	}
 
-	var wg sync.WaitGroup
+	quitContext, cancel := context.WithCancel(context.Background())
+	go awaitSignal(cancel)
 
-	finalResult := true
+	var wg sync.WaitGroup
+	wg.Add(len(targetDatabases))
+
+	returnCode := 0
 	for _, k := range targetDatabases {
-		wg.Add(1)
 		go func(db database, k string) {
 			defer wg.Done()
-			if r := runSQL(db, sql, k, len(targetDatabases) > 1); !r {
-				finalResult = false
+			if r := runSQL(quitContext, db, sql, k, len(targetDatabases) > 1); !r {
+				returnCode = 1
 			}
 		}(databases[k], k)
 	}
 
 	wg.Wait()
-
-	if !finalResult {
-		os.Exit(1)
-	}
-	os.Exit(0)
+	os.Exit(returnCode)
 }
 
-func runSQL(db database, sql string, key string, prependKey bool) bool {
+func runSQL(quitContext context.Context, db database, sql string, key string, prependKey bool) bool {
 	userOption := ""
 	if db.User != "" {
 		userOption = fmt.Sprintf("-u %v ", db.User)
@@ -114,10 +117,10 @@ func runSQL(db database, sql string, key string, prependKey bool) bool {
 	var cmd *exec.Cmd
 	if db.AppServer != "" {
 		query := fmt.Sprintf(`'%v'`, strings.Replace(sql, `'`, `'"'"'`, -1))
-		cmd = exec.Command("ssh", db.AppServer, mysql+options+query)
+		cmd = exec.CommandContext(quitContext, "ssh", db.AppServer, mysql+options+query)
 	} else {
 		args := append(trimEmpty(strings.Split(options, " ")), sql)
-		cmd = exec.Command("mysql", args...)
+		cmd = exec.CommandContext(quitContext, "mysql", args...)
 	}
 
 	stdout, err := cmd.StdoutPipe()
@@ -139,7 +142,7 @@ func runSQL(db database, sql string, key string, prependKey bool) bool {
 
 	scanner := bufio.NewScanner(stdout)
 	for scanner.Scan() {
-		fmt.Println(prepend + scanner.Text())
+		println(prepend + scanner.Text())
 	}
 
 	stderrLines := []string{}
@@ -160,6 +163,12 @@ func runSQL(db database, sql string, key string, prependKey bool) bool {
 	}
 
 	return result
+}
+
+func println(s string) {
+	printLock.Lock()
+	defer printLock.Unlock()
+	fmt.Println(s)
 }
 
 func readInput(r io.Reader) string {
@@ -189,4 +198,11 @@ func trimEmpty(s []string) []string {
 		}
 	}
 	return r
+}
+
+func awaitSignal(cancel context.CancelFunc) {
+	signals := make(chan os.Signal)
+	signal.Notify(signals, syscall.SIGINT, syscall.SIGTERM)
+	<-signals
+	cancel()
 }

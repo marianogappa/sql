@@ -2,6 +2,8 @@
 
 MySQL pipe
 
+[Blogpost](https://movio.co/en/blog/improving-with-sql-and-charts/)
+
 ## What does it do?
 
 - `sql` allows you to pipe STDIN (hopefully containing SQL) to one or more pre-configured MySQL databases
@@ -35,8 +37,12 @@ echo "SELECT * FROM users WHERE name = 'John'" | sql all
 - when more than one database is queried, the resulting rows are prefixed with the database identifier
 - the `all` special keyword means "sql to all configured databases"
 - `sql` assumes that you have correctly configured SSH keys on all servers you `ssh` to
+
+## Beware!
+
 - please note that `~/.databases.json` will contain your database credentials in plain text; if this is a problem for you, don't use `sql`!
 - `sql` is meant for automation of one-time lightweight ad-hoc `SELECT`s on many databases at once; it's not recommended for mission critical bash scripts that do destructive operations on production servers!
+- If you close an ongoing `sql` operation, spawned `mysql` and `ssh`->`mysql` processes will soon follow to their deaths, but the underlying mysql server query thread will complete, as long as it takes! https://github.com/marianogappa/sql/issues/7
 
 ## Dependencies
 
