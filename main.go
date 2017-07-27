@@ -23,17 +23,17 @@ type database struct {
 	Pass      string
 }
 
-var help = flag.Bool("help", false, "shows usage")
-var pretty = flag.Bool("pretty", false, "includes column names in output")
-var printLock sync.Mutex
-
-func init() {
-	flag.BoolVar(help, "h", false, "shows usage")
-	flag.BoolVar(pretty, "p", false, "includes column names in output")
-}
+var (
+	help      = new(bool)
+	pretty    = new(bool)
+	printLock sync.Mutex
+)
 
 func main() {
+	flag.BoolVar(help, "h", false, "shows usage")
+	flag.BoolVar(pretty, "p", false, "includes column names in output")
 	flag.Parse()
+
 	if *help {
 		usage("")
 	}

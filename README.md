@@ -30,6 +30,9 @@ cat query.sql | sql test_db
 sed 's/2015/2016/g' query_for_2015.sql | sql db1 db2 db3
 
 echo "SELECT * FROM users WHERE name = 'John'" | sql all
+
+# use 'pretty' flag, -p, if you need column names and do not need pipable output:
+echo "SELECT * from auth limit 1" | sql -p db1
 ```
 
 ## Notes
