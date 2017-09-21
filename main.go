@@ -23,15 +23,18 @@ type database struct {
 	Pass      string
 }
 
-var help = flag.Bool("help", false, "shows usage")
-var printLock sync.Mutex
-
-func init() {
-	flag.BoolVar(help, "h", false, "shows usage")
-}
+var (
+	help      = new(bool)
+	pretty    = new(bool)
+	printLock sync.Mutex
+)
 
 func main() {
+	flag.BoolVar(help, "help", false, "shows usage")
+	flag.BoolVar(help, "h", false, "shows usage")
+	flag.BoolVar(pretty, "p", false, "includes column names in output")
 	flag.Parse()
+
 	if *help {
 		usage("")
 	}
@@ -49,6 +52,9 @@ func main() {
 
 	targetDatabases := []string{}
 	for _, k := range os.Args[1:] {
+		if k == "-p" {
+			continue
+		}
 		if _, ok := databases[k]; k != "all" && !ok {
 			usage("Target database unknown: [%v]", k)
 		}
@@ -105,6 +111,9 @@ func runSQL(quitContext context.Context, db database, sql string, key string, pr
 
 	mysql := "mysql"
 	options := fmt.Sprintf(" -Nsr %v%v%v%v -e ", userOption, passOption, hostOption, db.DbName)
+	if *pretty {
+		options = fmt.Sprintf(" -vt %v%v%v%v -e ", userOption, passOption, hostOption, db.DbName)
+	}
 
 	var cmd *exec.Cmd
 	if db.AppServer != "" {
