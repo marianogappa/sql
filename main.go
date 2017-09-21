@@ -30,6 +30,7 @@ var (
 )
 
 func main() {
+	flag.BoolVar(help, "help", false, "shows usage")
 	flag.BoolVar(help, "h", false, "shows usage")
 	flag.BoolVar(pretty, "p", false, "includes column names in output")
 	flag.Parse()
