@@ -23,7 +23,7 @@ e.g.
 
   sed 's/2015/2016/g' query_for_2015.sql | sql db1 db2 db3
 
-  echo "SELECT * FROM users WHERE name = 'John'" | sql all
+  sql all "SELECT * FROM users WHERE name = 'John'"
 
 For more detailed help, please go to: https://github.com/marianogappa/sql
 `)
