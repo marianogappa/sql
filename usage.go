@@ -25,7 +25,6 @@ e.g.
 
   sql all "SELECT * FROM users WHERE name = 'John'"
 
-For more detailed help, please go to: https://github.com/marianogappa/sql
-`)
+For more detailed help, please go to: https://github.com/marianogappa/sql`)
 	os.Exit(1)
 }
