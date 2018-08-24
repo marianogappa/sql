@@ -45,7 +45,10 @@ func main() {
 	var sql string
 	var databasesArgs []string
 
-	stat, _ := os.Stdin.Stat()
+	stat, err := os.Stdin.Stat()
+	if err != nil {
+		log.Fatalf("Couldn't os.Stdin.Stat(): %v", err)
+	}
 	if (stat.Mode() & os.ModeCharDevice) != 0 {
 		// Stdin is a terminal. The last argument is the SQL.
 		if len(os.Args) < 3 {
