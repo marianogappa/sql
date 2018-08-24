@@ -42,13 +42,31 @@ func main() {
 		usage("Target database unspecified; where should I run the query?")
 	}
 
-	sql := readInput(os.Stdin)
+	var sql string
+	var databasesArgs []string
+
+	stat, err := os.Stdin.Stat()
+	if err != nil {
+		log.Fatalf("Couldn't os.Stdin.Stat(): %v", err)
+	}
+	if (stat.Mode() & os.ModeCharDevice) != 0 {
+		// Stdin is a terminal. The last argument is the SQL.
+		if len(os.Args) < 3 {
+			usage("No SQL to run. Exiting.")
+		}
+		sql = os.Args[len(os.Args)-1]
+		databasesArgs = os.Args[1 : len(os.Args)-1]
+	} else {
+		sql = readInput(os.Stdin)
+		databasesArgs = os.Args[1:]
+	}
+
 	if len(sql) <= 3 {
 		usage("No SQL to run. Exiting.")
 	}
 
 	targetDatabases := []string{}
-	for _, k := range os.Args[1:] {
+	for _, k := range databasesArgs {
 		if _, ok := databases[k]; k != "all" && !ok {
 			usage("Target database unknown: [%v]", k)
 		}
@@ -171,6 +189,7 @@ func readInput(r io.Reader) string {
 	for {
 		var s string
 		s, err = rd.ReadString('\n')
+
 		if err == io.EOF {
 			return strings.Join(ls, " ")
 		}
