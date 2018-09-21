@@ -1,0 +1,23 @@
+#
+# Auto completion script for "sql" command.
+#
+
+if type sql &>/dev/null; then
+
+_sql_autocomplete()
+{
+    _databases=$(sql --list-dbs)
+
+    local cur
+    COMPREPLY=()
+    cur="${COMP_WORDS[COMP_CWORD]}"
+    COMPREPLY=( $(compgen -W "${_databases}" -- ${cur}) )
+
+    return 0
+}
+
+complete -o nospace -F _sql_autocomplete sql
+
+unset -v _sql_autocomplete
+
+fi

@@ -1,0 +1,3 @@
+#compdef sql
+
+_arguments "1: :($(sql --list-dbs))"
