@@ -24,7 +24,7 @@ type database struct {
 }
 
 var help = flag.Bool("help", false, "shows usage")
-var listDBs = flag.Bool("list-dbs", false, "List all available DBs")
+var listDBs = flag.Bool("list-dbs", false, "List all available DBs (used for auto-completion)")
 
 var printLock sync.Mutex
 
@@ -37,8 +37,12 @@ func main() {
 	if *help {
 		usage("")
 	}
-	if *listDBs {
-		listAllDBs()
+	if *listDBs { // for auto-completion
+		for dbName := range mustReadDatabasesConfigFile() {
+			fmt.Print(dbName, " ")
+		}
+		fmt.Println()
+		os.Exit(0)
 	}
 
 	databases := mustReadDatabasesConfigFile()
