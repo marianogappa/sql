@@ -6,7 +6,11 @@ import (
 )
 
 func usage(error string, args ...interface{}) {
+	exitCode := 0
+
 	if len(error) > 0 {
+		exitCode = 1
+
 		if len(args) > 0 {
 			fmt.Printf(fmt.Sprintf(error, args...))
 		} else {
@@ -26,5 +30,5 @@ e.g.
   sql all "SELECT * FROM users WHERE name = 'John'"
 
 For more detailed help, please go to: https://github.com/marianogappa/sql`)
-	os.Exit(1)
+	os.Exit(exitCode)
 }

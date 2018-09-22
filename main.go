@@ -24,6 +24,8 @@ type database struct {
 }
 
 var help = flag.Bool("help", false, "shows usage")
+var listDBs = flag.Bool("list-dbs", false, "List all available DBs")
+
 var printLock sync.Mutex
 
 func init() {
@@ -34,6 +36,9 @@ func main() {
 	flag.Parse()
 	if *help {
 		usage("")
+	}
+	if *listDBs {
+		listAllDBs()
 	}
 
 	databases := mustReadDatabasesConfigFile()

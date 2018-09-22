@@ -18,6 +18,19 @@ Get the latest binary on the [Releases](https://github.com/MarianoGappa/sql/rele
 go get -u github.com/MarianoGappa/sql
 ```
 
+### Auto completion
+
+Optionaly, you can install auto complete scripts for your shell too. It will complete the name of databases.
+
+For bash, copy or link `sql-bash-autocomplete` file to `/etc/bash_completion.d` directory.
+
+For zsh, copy or link `sql-zsh-autocomplete` file to somewhere in your `$fpath`. (If you use oh-my-zsh framework, copy/link it to `~/.oh-my-zsh/completions`.) Note that file should be renamed to `_sql`. You may also need to run the following commands in order to force ZSH to rebuild its auto completion cache.
+
+```
+$ rm ~/.zcompdump
+$ compinit
+```
+
 ## Configuration
 
 Create a `.databases.json` dotfile in your home folder or in any [XDG-compliant](https://standards.freedesktop.org/basedir-spec/basedir-spec-latest.html) directory. [This](.databases.json.example) is an example file.
