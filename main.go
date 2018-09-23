@@ -20,19 +20,17 @@ type database struct {
 	Pass      string
 }
 
-var help = flag.Bool("help", false, "shows usage")
-var listDBs = flag.Bool("list-dbs", false, "List all available DBs (used for auto-completion)")
-
-func init() {
-	flag.BoolVar(help, "h", false, "shows usage")
-}
-
 func main() {
+	var (
+		flagHelp    = flag.Bool("help", false, "shows usage")
+		flagListDBs = flag.Bool("list-dbs", false, "List all available DBs (used for auto-completion)")
+	)
+	flag.BoolVar(flagHelp, "h", false, "shows usage")
 	flag.Parse()
-	if *help {
+	if *flagHelp {
 		usage("")
 	}
-	if *listDBs { // for auto-completion
+	if *flagListDBs { // for auto-completion
 		for dbName := range mustReadDatabasesConfigFile() {
 			fmt.Print(dbName, " ")
 		}
