@@ -60,7 +60,7 @@ func TestSQL(t *testing.T) {
 	for _, tc := range ts {
 		t.Run(tc.name, func(t *testing.T) {
 			var buf = bytes.Buffer{}
-			_main(testConfig, tc.targetDBs, tc.query, &buf)
+			_main(testConfig, tc.targetDBs, tc.query, newThreadSafePrintliner(&buf).println)
 			var actual = strings.Split(buf.String(), "\n")
 			sort.Strings(actual)
 			if !reflect.DeepEqual(tc.expected, actual) {

@@ -1,40 +1,35 @@
 package main
 
 import (
-	"bufio"
 	"context"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
 	"os/signal"
 	"strings"
+	"sync"
 	"syscall"
 )
 
-func println(w io.Writer, s string) {
-	printLock.Lock()
-	defer printLock.Unlock()
-	fmt.Fprintln(w, s)
+type threadSafePrintliner struct {
+	l sync.Mutex
+	w io.Writer
 }
 
-func readInput(r io.Reader) string {
-	ls := []string{}
-	var err error
-	rd := bufio.NewReader(r)
+func newThreadSafePrintliner(w io.Writer) *threadSafePrintliner {
+	return &threadSafePrintliner{w: w}
+}
 
-	for {
-		var s string
-		s, err = rd.ReadString('\n')
+func (p *threadSafePrintliner) println(s string) {
+	p.l.Lock()
+	fmt.Fprintln(p.w, s)
+	p.l.Unlock()
+}
 
-		if err == io.EOF {
-			return strings.Join(ls, " ")
-		}
-		s = strings.TrimSpace(s)
-		if len(s) == 0 {
-			continue
-		}
-		ls = append(ls, strings.TrimSpace(s))
-	}
+func readQuery(r io.Reader) string {
+	s, _ := ioutil.ReadAll(r) // N.B. not interested in this error; might as well return an empty string
+	return strings.TrimSpace(strings.Replace(string(s), "\n", " ", -1))
 }
 
 func trimEmpty(s []string) []string {

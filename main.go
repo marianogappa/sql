@@ -5,7 +5,6 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"io"
 	"log"
 	"os"
 	"os/exec"
@@ -64,7 +63,7 @@ func main() {
 		query = os.Args[len(os.Args)-1]
 		databasesArgs = os.Args[1 : len(os.Args)-1]
 	} else {
-		query = readInput(os.Stdin)
+		query = readQuery(os.Stdin)
 		databasesArgs = os.Args[1:]
 	}
 
@@ -72,10 +71,10 @@ func main() {
 		usage("No SQL to run. Exiting.")
 	}
 
-	os.Exit(_main(databases, databasesArgs, query, os.Stdout))
+	os.Exit(_main(databases, databasesArgs, query, newThreadSafePrintliner(os.Stdout).println))
 }
 
-func _main(databases map[string]database, databasesArgs []string, query string, w io.Writer) int {
+func _main(databases map[string]database, databasesArgs []string, query string, println func(string)) int {
 	targetDatabases := []string{}
 	for _, k := range databasesArgs {
 		if _, ok := databases[k]; k != "all" && !ok {
@@ -101,7 +100,7 @@ func _main(databases map[string]database, databasesArgs []string, query string, 
 	for _, k := range targetDatabases {
 		go func(db database, k string) {
 			defer wg.Done()
-			if r := runSQL(quitContext, db, query, k, len(targetDatabases) > 1, w); !r {
+			if r := runSQL(quitContext, db, query, k, len(targetDatabases) > 1, println); !r {
 				returnCode = 1
 			}
 		}(databases[k], k)
@@ -111,7 +110,7 @@ func _main(databases map[string]database, databasesArgs []string, query string, 
 	return returnCode
 }
 
-func runSQL(quitContext context.Context, db database, sql string, key string, prependKey bool, w io.Writer) bool {
+func runSQL(quitContext context.Context, db database, sql string, key string, prependKey bool, println func(string)) bool {
 	userOption := ""
 	if db.User != "" {
 		userOption = fmt.Sprintf("-u %v ", db.User)
@@ -163,7 +162,7 @@ func runSQL(quitContext context.Context, db database, sql string, key string, pr
 
 	scanner := bufio.NewScanner(stdout)
 	for scanner.Scan() {
-		println(w, prepend+scanner.Text())
+		println(prepend + scanner.Text())
 	}
 
 	stderrLines := []string{}
