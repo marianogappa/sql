@@ -1,6 +1,6 @@
 version: '3'
 services:
-  blah-test:
+  test:
     image: golang:1.11
     volumes:
       - "$PWD:/go/src/sql"
