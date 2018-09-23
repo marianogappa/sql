@@ -15,7 +15,7 @@ MySQL pipe
 
 Get the latest binary on the [Releases](https://github.com/MarianoGappa/sql/releases) section, or via `go get`:
 ```
-go get -u github.com/MarianoGappa/sql
+go get -u github.com/marianogappa/sql
 ```
 
 ### Auto completion
