@@ -3,9 +3,8 @@ OS = $(shell uname | tr [:upper:] [:lower:])
 ARTIFACT = sql
 
 build: GOOS ?= ${OS}
-build: GOARCH ?= amd64
 build: clean test
-		GOOS=${GOOS} GOARCH=${GOARCH} CGO_ENABLED=0 go build -o ${ARTIFACT} -a .
+		GOOS=${GOOS} GOARCH=amd64 CGO_ENABLED=0 go build -o ${ARTIFACT} -a .
 
 clean: cleanmac
 		rm -f ${ARTIFACT}
