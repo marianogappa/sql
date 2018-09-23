@@ -80,6 +80,23 @@ func TestSQL(t *testing.T) {
 					"db3	3",
 				},
 			},
+			{
+				name:      "reads two fields from all databases",
+				targetDBs: []string{"all"},
+				query:     "SELECT id, name FROM table1",
+				expected: []string{
+					"",
+					"db1	1	John",
+					"db1	2	George",
+					"db1	3	Richard",
+					"db2	1	Rob",
+					"db2	2	Ken",
+					"db2	3	Robert",
+					"db3	1	Athos",
+					"db3	2	Porthos",
+					"db3	3	Aramis",
+				},
+			},
 		}
 	)
 	for _, tc := range ts {
