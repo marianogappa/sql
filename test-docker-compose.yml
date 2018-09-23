@@ -1,13 +1,12 @@
 version: '3'
 services:
   test:
-    image: golang:1.11
+    build: .
     volumes:
       - "$PWD:/go/src/sql"
     working_dir: /go/src/sql
     depends_on:
       - test-mysql
-    entrypoint: ./test.sh
   test-mysql:
     image: mysql:5
     volumes:

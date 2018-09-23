@@ -13,16 +13,16 @@ import (
 
 func TestSQL(t *testing.T) {
 	var err error
-	for i := 1; i <= 5; i++ { // Try up to 10 times, because MySQL takes a while to become online
+	for i := 1; i <= 30; i++ { // Try up to 30 times, because MySQL takes a while to become online
 		var c = exec.Command("mysql", "-h", "test-mysql", "-u", "root", "-e", "SELECT * FROM db1.table1")
 		if err = c.Run(); err == nil {
 			break
 		}
-		log.Printf("Retrying (%v/10) in 1 sec because MySQL is not yet ready", i)
+		log.Printf("Retrying (%v/30) in 1 sec because MySQL is not yet ready", i)
 		time.Sleep(1 * time.Second)
 	}
 	for err != nil {
-		t.Errorf("bailing because couldn't connect to MySQL after 10 tries: %v", err)
+		t.Errorf("bailing because couldn't connect to MySQL after 30 tries: %v", err)
 		t.FailNow()
 	}
 
@@ -39,7 +39,7 @@ func TestSQL(t *testing.T) {
 			expected  []string
 		}{
 			{
-				name:      "happy case",
+				name:      "reads ",
 				targetDBs: []string{"db1", "db2", "db3"},
 				query:     "SELECT id FROM table1",
 				expected: []string{
