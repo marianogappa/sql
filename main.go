@@ -51,7 +51,7 @@ func main() {
 		usage("Target database unspecified; where should I run the query?")
 	}
 
-	var sql string
+	var query string
 	var databasesArgs []string
 
 	stat, err := os.Stdin.Stat()
@@ -63,17 +63,21 @@ func main() {
 		if len(os.Args) < 3 {
 			usage("No SQL to run. Exiting.")
 		}
-		sql = os.Args[len(os.Args)-1]
+		query = os.Args[len(os.Args)-1]
 		databasesArgs = os.Args[1 : len(os.Args)-1]
 	} else {
-		sql = readInput(os.Stdin)
+		query = readInput(os.Stdin)
 		databasesArgs = os.Args[1:]
 	}
 
-	if len(sql) <= 3 {
+	if len(query) <= 3 {
 		usage("No SQL to run. Exiting.")
 	}
 
+	os.Exit(_main(databases, databasesArgs, query, os.Stdout))
+}
+
+func _main(databases map[string]database, databasesArgs []string, query string, w io.Writer) int {
 	targetDatabases := []string{}
 	for _, k := range databasesArgs {
 		if _, ok := databases[k]; k != "all" && !ok {
@@ -99,17 +103,17 @@ func main() {
 	for _, k := range targetDatabases {
 		go func(db database, k string) {
 			defer wg.Done()
-			if r := runSQL(quitContext, db, sql, k, len(targetDatabases) > 1); !r {
+			if r := runSQL(quitContext, db, query, k, len(targetDatabases) > 1, w); !r {
 				returnCode = 1
 			}
 		}(databases[k], k)
 	}
 
 	wg.Wait()
-	os.Exit(returnCode)
+	return returnCode
 }
 
-func runSQL(quitContext context.Context, db database, sql string, key string, prependKey bool) bool {
+func runSQL(quitContext context.Context, db database, sql string, key string, prependKey bool, w io.Writer) bool {
 	userOption := ""
 	if db.User != "" {
 		userOption = fmt.Sprintf("-u %v ", db.User)
@@ -161,7 +165,7 @@ func runSQL(quitContext context.Context, db database, sql string, key string, pr
 
 	scanner := bufio.NewScanner(stdout)
 	for scanner.Scan() {
-		println(prepend + scanner.Text())
+		println(w, prepend+scanner.Text())
 	}
 
 	stderrLines := []string{}
@@ -184,10 +188,10 @@ func runSQL(quitContext context.Context, db database, sql string, key string, pr
 	return result
 }
 
-func println(s string) {
+func println(w io.Writer, s string) {
 	printLock.Lock()
 	defer printLock.Unlock()
-	fmt.Println(s)
+	fmt.Fprintln(w, s)
 }
 
 func readInput(r io.Reader) string {

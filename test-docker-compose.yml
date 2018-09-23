@@ -1,0 +1,17 @@
+version: '3'
+services:
+  blah-test:
+    image: golang:1.11
+    volumes:
+      - "$PWD:/go/src/sql"
+    working_dir: /go/src/sql
+    depends_on:
+      - test-mysql
+    entrypoint: ./test.sh
+  test-mysql:
+    image: mysql:5
+    volumes:
+      - ./test_schemas.sql:/docker-entrypoint-initdb.d/test_schemas.sql
+    environment:
+      MYSQL_ROOT_PASSWORD:
+      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"

@@ -14,7 +14,7 @@ cleanmac:
 		find . -name '*.DS_Store' -type f -delete
 
 test:
-		go test
+	docker-compose --file test-docker-compose.yml up --abort-on-container-exit --force-recreate --renew-anon-volumes
 
 run: build
 	./${ARTIFACT}
