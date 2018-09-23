@@ -23,8 +23,6 @@ type database struct {
 var help = flag.Bool("help", false, "shows usage")
 var listDBs = flag.Bool("list-dbs", false, "List all available DBs (used for auto-completion)")
 
-var printLock sync.Mutex
-
 func init() {
 	flag.BoolVar(help, "h", false, "shows usage")
 }
