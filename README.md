@@ -2,6 +2,8 @@
 
 MySQL pipe
 
+![SQL](sql.gif)
+
 [Blogpost](https://movio.co/en/blog/improving-with-sql-and-charts/)
 
 ## What does it do?
