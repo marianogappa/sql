@@ -39,8 +39,33 @@ func TestSQL(t *testing.T) {
 			expected  []string
 		}{
 			{
-				name:      "reads ",
-				targetDBs: []string{"db1", "db2", "db3"},
+				name:      "reads from one database",
+				targetDBs: []string{"db1"},
+				query:     "SELECT id FROM table1",
+				expected: []string{
+					"",
+					"1",
+					"2",
+					"3",
+				},
+			},
+			{
+				name:      "reads from two databases",
+				targetDBs: []string{"db1", "db2"},
+				query:     "SELECT id FROM table1",
+				expected: []string{
+					"",
+					"db1	1",
+					"db1	2",
+					"db1	3",
+					"db2	1",
+					"db2	2",
+					"db2	3",
+				},
+			},
+			{
+				name:      "reads from all databases with the all keyword",
+				targetDBs: []string{"all"},
 				query:     "SELECT id FROM table1",
 				expected: []string{
 					"",
