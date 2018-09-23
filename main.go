@@ -12,14 +12,6 @@ import (
 	"sync"
 )
 
-type database struct {
-	AppServer string
-	DbServer  string
-	DbName    string
-	User      string
-	Pass      string
-}
-
 func main() {
 	var (
 		flagHelp    = flag.Bool("help", false, "shows usage")
