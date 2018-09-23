@@ -98,7 +98,7 @@ func _main(databases map[string]database, databasesArgs []string, query string, 
 	return returnCode
 }
 
-func runSQL(quitContext context.Context, db database, sql string, key string, prependKey bool, println func(string)) bool {
+func runSQL(quitContext context.Context, db database, query string, key string, prependKey bool, println func(string)) bool {
 	userOption := ""
 	if db.User != "" {
 		userOption = fmt.Sprintf("-u %v ", db.User)
@@ -124,11 +124,11 @@ func runSQL(quitContext context.Context, db database, sql string, key string, pr
 
 	var cmd *exec.Cmd
 	if db.AppServer != "" {
-		query := fmt.Sprintf(`'%v'`, strings.Replace(sql, `'`, `'"'"'`, -1))
-		cmd = exec.CommandContext(quitContext, "ssh", db.AppServer, mysql+options+query)
+		escapedQuery := fmt.Sprintf(`'%v'`, strings.Replace(query, `'`, `'"'"'`, -1))
+		cmd = exec.CommandContext(quitContext, "ssh", db.AppServer, mysql+options+escapedQuery)
 	} else {
-		args := append(trimEmpty(strings.Split(options, " ")), sql)
-		cmd = exec.CommandContext(quitContext, "mysql", args...)
+		args := append(trimEmpty(strings.Split(options, " ")), query)
+		cmd = exec.CommandContext(quitContext, mysql, args...)
 	}
 
 	stdout, err := cmd.StdoutPipe()
