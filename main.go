@@ -5,39 +5,24 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"io"
 	"log"
 	"os"
 	"os/exec"
-	"os/signal"
 	"strings"
 	"sync"
-	"syscall"
 )
 
-type database struct {
-	AppServer string
-	DbServer  string
-	DbName    string
-	User      string
-	Pass      string
-}
-
-var help = flag.Bool("help", false, "shows usage")
-var listDBs = flag.Bool("list-dbs", false, "List all available DBs (used for auto-completion)")
-
-var printLock sync.Mutex
-
-func init() {
-	flag.BoolVar(help, "h", false, "shows usage")
-}
-
 func main() {
+	var (
+		flagHelp    = flag.Bool("help", false, "shows usage")
+		flagListDBs = flag.Bool("list-dbs", false, "List all available DBs (used for auto-completion)")
+	)
+	flag.BoolVar(flagHelp, "h", false, "shows usage")
 	flag.Parse()
-	if *help {
+	if *flagHelp {
 		usage("")
 	}
-	if *listDBs { // for auto-completion
+	if *flagListDBs { // for auto-completion
 		for dbName := range mustReadDatabasesConfigFile() {
 			fmt.Print(dbName, " ")
 		}
@@ -51,7 +36,7 @@ func main() {
 		usage("Target database unspecified; where should I run the query?")
 	}
 
-	var sql string
+	var query string
 	var databasesArgs []string
 
 	stat, err := os.Stdin.Stat()
@@ -63,17 +48,21 @@ func main() {
 		if len(os.Args) < 3 {
 			usage("No SQL to run. Exiting.")
 		}
-		sql = os.Args[len(os.Args)-1]
+		query = os.Args[len(os.Args)-1]
 		databasesArgs = os.Args[1 : len(os.Args)-1]
 	} else {
-		sql = readInput(os.Stdin)
+		query = readQuery(os.Stdin)
 		databasesArgs = os.Args[1:]
 	}
 
-	if len(sql) <= 3 {
+	if len(query) <= 3 {
 		usage("No SQL to run. Exiting.")
 	}
 
+	os.Exit(_main(databases, databasesArgs, query, newThreadSafePrintliner(os.Stdout).println))
+}
+
+func _main(databases map[string]database, databasesArgs []string, query string, println func(string)) int {
 	targetDatabases := []string{}
 	for _, k := range databasesArgs {
 		if _, ok := databases[k]; k != "all" && !ok {
@@ -99,17 +88,17 @@ func main() {
 	for _, k := range targetDatabases {
 		go func(db database, k string) {
 			defer wg.Done()
-			if r := runSQL(quitContext, db, sql, k, len(targetDatabases) > 1); !r {
+			if r := runSQL(quitContext, db, query, k, len(targetDatabases) > 1, println); !r {
 				returnCode = 1
 			}
 		}(databases[k], k)
 	}
 
 	wg.Wait()
-	os.Exit(returnCode)
+	return returnCode
 }
 
-func runSQL(quitContext context.Context, db database, sql string, key string, prependKey bool) bool {
+func runSQL(quitContext context.Context, db database, query string, key string, prependKey bool, println func(string)) bool {
 	userOption := ""
 	if db.User != "" {
 		userOption = fmt.Sprintf("-u %v ", db.User)
@@ -135,11 +124,11 @@ func runSQL(quitContext context.Context, db database, sql string, key string, pr
 
 	var cmd *exec.Cmd
 	if db.AppServer != "" {
-		query := fmt.Sprintf(`'%v'`, strings.Replace(sql, `'`, `'"'"'`, -1))
-		cmd = exec.CommandContext(quitContext, "ssh", db.AppServer, mysql+options+query)
+		escapedQuery := fmt.Sprintf(`'%v'`, strings.Replace(query, `'`, `'"'"'`, -1))
+		cmd = exec.CommandContext(quitContext, "ssh", db.AppServer, mysql+options+escapedQuery)
 	} else {
-		args := append(trimEmpty(strings.Split(options, " ")), sql)
-		cmd = exec.CommandContext(quitContext, "mysql", args...)
+		args := append(trimEmpty(strings.Split(options, " ")), query)
+		cmd = exec.CommandContext(quitContext, mysql, args...)
 	}
 
 	stdout, err := cmd.StdoutPipe()
@@ -182,47 +171,4 @@ func runSQL(quitContext context.Context, db database, sql string, key string, pr
 	}
 
 	return result
-}
-
-func println(s string) {
-	printLock.Lock()
-	defer printLock.Unlock()
-	fmt.Println(s)
-}
-
-func readInput(r io.Reader) string {
-	ls := []string{}
-	var err error
-	rd := bufio.NewReader(r)
-
-	for {
-		var s string
-		s, err = rd.ReadString('\n')
-
-		if err == io.EOF {
-			return strings.Join(ls, " ")
-		}
-		s = strings.TrimSpace(s)
-		if len(s) == 0 {
-			continue
-		}
-		ls = append(ls, strings.TrimSpace(s))
-	}
-}
-
-func trimEmpty(s []string) []string {
-	var r []string
-	for _, str := range s {
-		if str != "" {
-			r = append(r, str)
-		}
-	}
-	return r
-}
-
-func awaitSignal(cancel context.CancelFunc) {
-	signals := make(chan os.Signal)
-	signal.Notify(signals, syscall.SIGINT, syscall.SIGTERM)
-	<-signals
-	cancel()
 }

@@ -9,6 +9,14 @@ import (
 	"strings"
 )
 
+type database struct {
+	AppServer string
+	DbServer  string
+	DbName    string
+	User      string
+	Pass      string
+}
+
 func mustReadDatabasesConfigFile() map[string]database {
 	var paths []string
 	databases := map[string]database{}
