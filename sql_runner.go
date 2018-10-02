@@ -13,7 +13,7 @@ import (
 type sqlType int
 
 const (
-	mySQL sqlType = iota
+	mySQL sqlType = iota + 1
 	postgreSQL
 )
 
@@ -28,9 +28,9 @@ type sqlOptions struct {
 	flags string
 }
 
-var validSQLTypes = map[sqlType]exists{
-	mySQL:      exists{},
-	postgreSQL: exists{},
+var validSQLTypes = map[string]sqlType{
+	"mysql":    mySQL,
+	"postgres": postgreSQL,
 }
 
 var sqlTypeToOptions = map[sqlType]sqlOptions{

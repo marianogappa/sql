@@ -14,6 +14,15 @@
         "dbName": "prod_database",
         "dbServer": "prod.db.server.com",
         "user": "user",
-        "pass": "pass"
+        "pass": "pass",
+        "sqlType": "mysql"
+    },
+    "postgresdb": {
+        "appServer": "pg.server.com",
+        "dbName": "pg_database",
+        "dbServer": "pg.db.server.com",
+        "user": "postgres",
+        "pass": "postgres",
+        "sqlType": "postgres"
     }
 }
