@@ -64,8 +64,7 @@ sql all "SELECT * FROM users WHERE name = 'John'"
 
 ## Dependencies
 
-- mysql
-- psql
+- mysql-client and/or postgresql-client
 - ssh (only if you configure an "appServer")
 
 ## Contribute

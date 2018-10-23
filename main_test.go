@@ -28,9 +28,9 @@ func Test_MySQL(t *testing.T) {
 
 	var (
 		testConfig = map[string]database{
-			"db1": database{DbServer: "test-mysql", DbName: "db1", User: "root", Pass: "", _sqlType: mySQL},
-			"db2": database{DbServer: "test-mysql", DbName: "db2", User: "root", Pass: "", _sqlType: mySQL},
-			"db3": database{DbServer: "test-mysql", DbName: "db3", User: "root", Pass: "", _sqlType: mySQL},
+			"db1": database{DbServer: "test-mysql", DbName: "db1", User: "root", Pass: "", SQLType: "mysql"},
+			"db2": database{DbServer: "test-mysql", DbName: "db2", User: "root", Pass: "", SQLType: ""},
+			"db3": database{DbServer: "test-mysql", DbName: "db3", User: "root", Pass: "", SQLType: ""},
 		}
 		ts = []struct {
 			name      string
@@ -129,9 +129,9 @@ func Test_PostgreSQL(t *testing.T) {
 
 	var (
 		testConfig = map[string]database{
-			"db1": database{DbServer: "test-postgres", DbName: "db1", User: "root", Pass: "", _sqlType: postgreSQL},
-			"db2": database{DbServer: "test-postgres", DbName: "db2", User: "root", Pass: "", _sqlType: postgreSQL},
-			"db3": database{DbServer: "test-postgres", DbName: "db3", User: "root", Pass: "", _sqlType: postgreSQL},
+			"db1": database{DbServer: "test-postgres", DbName: "db1", User: "root", Pass: "", SQLType: "postgres"},
+			"db2": database{DbServer: "test-postgres", DbName: "db2", User: "root", Pass: "", SQLType: "postgres"},
+			"db3": database{DbServer: "test-postgres", DbName: "db3", User: "root", Pass: "", SQLType: "postgres"},
 		}
 		ts = []struct {
 			name      string

@@ -16,7 +16,6 @@ type database struct {
 	User      string
 	Pass      string
 	SQLType   string
-	_sqlType  sqlType
 }
 
 func mustReadDatabasesConfigFile() map[string]database {
@@ -66,18 +65,6 @@ func mustReadDatabasesConfigFile() map[string]database {
 
 	if len(databases) == 0 {
 		usage("Couldn't find any database configurations on .databases.json. Looked like this:\n\n%v\n", string(byts))
-	}
-
-	for dbName, db := range databases {
-		typeStr := db.SQLType
-		if typeStr == "" {
-			typeStr = "mysql"
-		}
-		if _, ok := validSQLTypes[typeStr]; !ok {
-			usage("Unknown sql type %v for %v", typeStr, dbName)
-		}
-		db._sqlType = validSQLTypes[typeStr]
-		databases[dbName] = db
 	}
 
 	return databases

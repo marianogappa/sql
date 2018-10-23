@@ -29,6 +29,7 @@ type sqlOptions struct {
 }
 
 var validSQLTypes = map[string]sqlType{
+	"":         mySQL,
 	"mysql":    mySQL,
 	"postgres": postgreSQL,
 }

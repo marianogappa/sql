@@ -78,7 +78,12 @@ func _main(databases map[string]database, databasesArgs []string, query string, 
 	sqlTypes := map[sqlType]exists{}
 	var sqlType sqlType
 	for _, db := range targetDatabases {
-		sqlType = databases[db]._sqlType
+		database := databases[db]
+		typ, ok := validSQLTypes[database.SQLType]
+		if !ok {
+			usage("Unknown sql type %v for %v", database.SQLType, db)
+		}
+		sqlType = typ
 		sqlTypes[sqlType] = exists{}
 		if len(sqlTypes) > 1 {
 			usage("More than one sql types specified in target databases.")
