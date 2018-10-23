@@ -49,7 +49,7 @@ var sqlTypeToOptions = map[sqlType]sqlOptions{
 		"-h%v",
 		"PGPASSWORD=%v",
 		"-d %v",
-		"-tc",
+		"-tAc",
 	},
 }
 
@@ -109,10 +109,17 @@ func (sr *sqlRunner) runSQL(db database, key string) bool {
 	var cmd *exec.Cmd
 	if db.AppServer != "" {
 		escapedQuery := fmt.Sprintf(`'%v'`, strings.Replace(sr.query, `'`, `'"'"'`, -1))
+		if sr.typ == postgreSQL {
+			escapedQuery += fmt.Sprintf("-F%s", "\t")
+		}
+
 		cmd = exec.CommandContext(sr.quitContext, "ssh", db.AppServer, options+escapedQuery)
 
 	} else {
 		args := append(trimEmpty(strings.Split(options, " ")), sr.query)
+		if sr.typ == postgreSQL {
+			args = append(args, fmt.Sprintf("-F%s", "\t"))
+		}
 		cmd = exec.CommandContext(sr.quitContext, args[0], args[1:]...)
 	}
 
