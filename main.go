@@ -75,28 +75,13 @@ func _main(databases map[string]database, databasesArgs []string, query string, 
 		targetDatabases = append(targetDatabases, k)
 	}
 
-	sqlTypes := map[sqlType]exists{}
-	var sqlType sqlType
-	for _, db := range targetDatabases {
-		database := databases[db]
-		typ, ok := validSQLTypes[database.SQLType]
-		if !ok {
-			usage("Unknown sql type %v for %v", database.SQLType, db)
-		}
-		sqlType = typ
-		sqlTypes[sqlType] = exists{}
-		if len(sqlTypes) > 1 {
-			usage("More than one sql types specified in target databases.")
-		}
-	}
-
 	quitContext, cancel := context.WithCancel(context.Background())
 	go awaitSignal(cancel)
 
 	var wg sync.WaitGroup
 	wg.Add(len(targetDatabases))
 
-	sqlRunner := mustNewSQLRunner(quitContext, sqlType, println, query, len(targetDatabases) > 1)
+	sqlRunner := mustNewSQLRunner(quitContext, println, query, len(targetDatabases) > 1)
 
 	returnCode := 0
 	for _, k := range targetDatabases {
