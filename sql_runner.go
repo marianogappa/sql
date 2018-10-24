@@ -18,7 +18,7 @@ const (
 )
 
 func (t sqlType) String() string {
-	return [...]string{"MySQL", "PostgreSQL"}[t]
+	return [...]string{"", "MySQL", "PostgreSQL"}[t]
 }
 
 type exists struct{}
