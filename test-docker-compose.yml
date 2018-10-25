@@ -7,10 +7,18 @@ services:
     working_dir: /go/src/sql
     depends_on:
       - test-mysql
+      - test-postgres
   test-mysql:
     image: mysql:5
     volumes:
-      - ./test_schemas.sql:/docker-entrypoint-initdb.d/test_schemas.sql
+      - ./mysql_test_schemas.sql:/docker-entrypoint-initdb.d/mysql_test_schemas.sql
     environment:
       MYSQL_ROOT_PASSWORD:
       MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+  test-postgres:
+    image: postgres:9-alpine
+    volumes:
+      - ./postgres_test_schemas.sql:/docker-entrypoint-initdb.d/postgres_test_schemas.sql
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD:

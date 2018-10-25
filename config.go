@@ -15,6 +15,7 @@ type database struct {
 	DbName    string
 	User      string
 	Pass      string
+	SQLType   string
 }
 
 func mustReadDatabasesConfigFile() map[string]database {

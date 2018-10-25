@@ -1,14 +1,11 @@
 package main
 
 import (
-	"bufio"
 	"context"
 	"flag"
 	"fmt"
 	"log"
 	"os"
-	"os/exec"
-	"strings"
 	"sync"
 )
 
@@ -84,11 +81,13 @@ func _main(databases map[string]database, databasesArgs []string, query string, 
 	var wg sync.WaitGroup
 	wg.Add(len(targetDatabases))
 
+	sqlRunner := mustNewSQLRunner(quitContext, println, query, len(targetDatabases) > 1)
+
 	returnCode := 0
 	for _, k := range targetDatabases {
 		go func(db database, k string) {
 			defer wg.Done()
-			if r := runSQL(quitContext, db, query, k, len(targetDatabases) > 1, println); !r {
+			if r := sqlRunner.runSQL(db, k); !r {
 				returnCode = 1
 			}
 		}(databases[k], k)
@@ -96,79 +95,4 @@ func _main(databases map[string]database, databasesArgs []string, query string, 
 
 	wg.Wait()
 	return returnCode
-}
-
-func runSQL(quitContext context.Context, db database, query string, key string, prependKey bool, println func(string)) bool {
-	userOption := ""
-	if db.User != "" {
-		userOption = fmt.Sprintf("-u %v ", db.User)
-	}
-
-	passOption := ""
-	if db.Pass != "" {
-		passOption = fmt.Sprintf("-p%v ", db.Pass)
-	}
-
-	hostOption := ""
-	if db.DbServer != "" {
-		hostOption = fmt.Sprintf("-h %v ", db.DbServer)
-	}
-
-	prepend := ""
-	if prependKey {
-		prepend = key + "\t"
-	}
-
-	mysql := "mysql"
-	options := fmt.Sprintf(" -Nsr %v%v%v%v -e ", userOption, passOption, hostOption, db.DbName)
-
-	var cmd *exec.Cmd
-	if db.AppServer != "" {
-		escapedQuery := fmt.Sprintf(`'%v'`, strings.Replace(query, `'`, `'"'"'`, -1))
-		cmd = exec.CommandContext(quitContext, "ssh", db.AppServer, mysql+options+escapedQuery)
-	} else {
-		args := append(trimEmpty(strings.Split(options, " ")), query)
-		cmd = exec.CommandContext(quitContext, mysql, args...)
-	}
-
-	stdout, err := cmd.StdoutPipe()
-	if err != nil {
-		log.Printf("Cannot create pipe for STDOUT of running command on %v; not running. err=%v\n", key, err)
-		return false
-	}
-
-	stderr, err := cmd.StderrPipe()
-	if err != nil {
-		log.Printf("Cannot create pipe for STDERR of running command on %v; not running. err=%v\n", key, err)
-		return false
-	}
-
-	if err := cmd.Start(); err != nil {
-		log.Printf("Cannot start command on %v; not running. err=%v\n", key, err)
-		return false
-	}
-
-	scanner := bufio.NewScanner(stdout)
-	for scanner.Scan() {
-		println(prepend + scanner.Text())
-	}
-
-	stderrLines := []string{}
-	scanner = bufio.NewScanner(stderr)
-	for scanner.Scan() {
-		stderrLines = append(stderrLines, scanner.Text())
-	}
-
-	cmd.Wait()
-
-	result := true
-	if len(stderrLines) > 0 {
-		result = false
-		log.Println(key + " had errors:")
-		for _, v := range stderrLines {
-			log.Println(key + " [ERROR] " + v)
-		}
-	}
-
-	return result
 }

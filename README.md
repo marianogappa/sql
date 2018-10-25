@@ -8,10 +8,10 @@ MySQL pipe
 
 ## What does it do?
 
-- `sql` allows you to pipe STDIN (hopefully containing SQL) to one or more pre-configured MySQL databases
+- `sql` allows you to pipe STDIN (hopefully containing SQL) to one or more pre-configured MySQL or PostgreSQL databases
 - output comes out in `\t`-separated format, allowing further piping (e.g. works really well with [chart](https://github.com/MarianoGappa/chart))
 - when more than one database is queried, the requests are made in parallel
-- `sql` can either run `mysql` locally, run `mysql` locally but connecting to a remote host (by configuring a `dbServer`), or `ssh` to a remote host and from there run `mysql` to either a local or remote host (by configuring an `appServer` and a `dbServer`)
+- `sql` can either run `mysql/psql` locally, run `mysql/psql` locally but connecting to a remote host (by configuring a `dbServer`), or `ssh` to a remote host and from there run `mysql/psql` to either a local or remote host (by configuring an `appServer` and a `dbServer`)
 
 ## Installation
 
@@ -37,6 +37,8 @@ $ compinit
 
 Create a `.databases.json` dotfile in your home folder or in any [XDG-compliant](https://standards.freedesktop.org/basedir-spec/basedir-spec-latest.html) directory. [This](.databases.json.example) is an example file.
 
+`sql` decides to execute with MySQL or PostgreSQL depending on the `sqlType` property set for a database, *defaulting to to MySQL if not set.*
+
 ## Example usages
 
 ```
@@ -50,8 +52,9 @@ sql all "SELECT * FROM users WHERE name = 'John'"
 ## Notes
 
 - when more than one database is queried, the resulting rows are prefixed with the database identifier
-- the `all` special keyword means "sql to all configured databases"
+- the `all` special keyword means "sql to all configured databases".
 - `sql` assumes that you have correctly configured SSH keys on all servers you `ssh` to
+- `sql` will error if all targeted databases do not have the same sql type.
 
 ## Beware!
 
@@ -61,7 +64,7 @@ sql all "SELECT * FROM users WHERE name = 'John'"
 
 ## Dependencies
 
-- mysql
+- mysql-client and/or postgresql-client
 - ssh (only if you configure an "appServer")
 
 ## Contribute
