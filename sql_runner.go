@@ -76,7 +76,7 @@ func mustNewSQLRunner(quitContext context.Context, printer func(string), query s
 func (sr *sqlRunner) runSQL(db database, key string) bool {
 	typ, ok := validSQLTypes[db.SQLType]
 	if !ok {
-		usage("Unknown sql type %v for %v", db.SQLType, db)
+		return maybeErrorResult(key, fmt.Sprintf("Unknown sql type %v for %v", db.SQLType, key))
 	}
 
 	sqlOptions := sqlTypeToOptions[typ]
@@ -137,19 +137,16 @@ func (sr *sqlRunner) runSQL(db database, key string) bool {
 
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
-		log.Printf("Cannot create pipe for STDOUT of running command on %v; not running. err=%v\n", key, err)
-		return false
+		return maybeErrorResult(key, fmt.Sprintf("Cannot create pipe for STDOUT of running command on %v; not running. err=%v\n", key, err))
 	}
 
 	stderr, err := cmd.StderrPipe()
 	if err != nil {
-		log.Printf("Cannot create pipe for STDERR of running command on %v; not running. err=%v\n", key, err)
-		return false
+		return maybeErrorResult(key, fmt.Sprintf("Cannot create pipe for STDERR of running command on %v; not running. err=%v\n", key, err))
 	}
 
 	if err := cmd.Start(); err != nil {
-		log.Printf("Cannot start command on %v; not running. err=%v\n", key, err)
-		return false
+		return maybeErrorResult(key, fmt.Sprintf("Cannot start command on %v; not running. err=%v\n", key, err))
 	}
 
 	scanner := bufio.NewScanner(stdout)
@@ -168,6 +165,10 @@ func (sr *sqlRunner) runSQL(db database, key string) bool {
 
 	cmd.Wait()
 
+	return maybeErrorResult(key, stderrLines...)
+}
+
+func maybeErrorResult(key string, stderrLines ...string) bool {
 	result := true
 	if len(stderrLines) > 0 {
 		result = false
@@ -176,6 +177,5 @@ func (sr *sqlRunner) runSQL(db database, key string) bool {
 			log.Println(key + " [ERROR] " + v)
 		}
 	}
-
 	return result
 }
