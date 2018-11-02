@@ -81,6 +81,19 @@ var baseTests = tests{
 	},
 }
 
+var mysqlTests = tests{{
+	name:      `mysql outputs vertical with \G`,
+	targetDBs: []string{"db1"},
+	query:     `SELECT id, name FROM table1 order by id asc limit 1\G`,
+	expected: []string{
+		"",
+		"*************************** 1. row ***************************",
+		"id: 1",
+		"name: John",
+	},
+},
+}
+
 func Test_MySQL(t *testing.T) {
 	awaitDB(mySQL, t)
 
@@ -92,6 +105,7 @@ func Test_MySQL(t *testing.T) {
 		}
 	)
 	runTests(baseTests, testConfig, t)
+	runTests(mysqlTests, testConfig, t)
 }
 
 func Test_PostgreSQL(t *testing.T) {
