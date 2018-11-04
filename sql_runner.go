@@ -14,11 +14,12 @@ type sqlType int
 
 const (
 	mySQL sqlType = iota + 1
+	mySQLVertical
 	postgreSQL
 )
 
 func (t sqlType) String() string {
-	return [...]string{"", "MySQL", "PostgreSQL"}[t]
+	return [...]string{"", "MySQL", "MySQL", "PostgreSQL"}[t]
 }
 
 type exists struct{}
@@ -47,6 +48,14 @@ var sqlTypeToOptions = map[sqlType]sqlOptions{
 		"%v",
 		"-Nsre",
 	},
+	mySQLVertical: {
+		"mysql",
+		"-u%v",
+		"-h%v",
+		"-p%v",
+		"%v",
+		"-Ee",
+	},
 	postgreSQL: {
 		"psql",
 		"-U %v",
@@ -62,14 +71,21 @@ type sqlRunner struct {
 	query       string
 	quitContext context.Context
 	multi       bool
+	vertical    bool
 }
 
 func mustNewSQLRunner(quitContext context.Context, printer func(string), query string, multi bool) *sqlRunner {
+	var vertical bool
+	if strings.HasSuffix(query, `\G`) {
+		vertical = true
+		query = strings.TrimSuffix(query, `\G`)
+	}
 	return &sqlRunner{
 		printer,
 		query,
 		quitContext,
 		multi,
+		vertical,
 	}
 }
 
@@ -77,6 +93,9 @@ func (sr *sqlRunner) runSQL(db database, key string) bool {
 	typ, ok := validSQLTypes[db.SQLType]
 	if !ok {
 		return maybeErrorResult(key, fmt.Sprintf("Unknown sql type %v for %v", db.SQLType, key))
+	}
+	if sr.vertical && typ == mySQL {
+		typ = mySQLVertical
 	}
 
 	sqlOptions := sqlTypeToOptions[typ]
