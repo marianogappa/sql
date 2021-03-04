@@ -4,4 +4,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends default-mysql-c
 
 ENV GO111MODULE=off
 
+RUN git clone https://github.com/golang/sync $GOPATH/src/golang.org/x/sync
+
 ENTRYPOINT [ "go", "test", "-v", "." ]

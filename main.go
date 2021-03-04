@@ -7,6 +7,8 @@ import (
 	"log"
 	"os"
 	"sync"
+
+	"golang.org/x/sync/semaphore"
 )
 
 func main() {
@@ -28,6 +30,7 @@ func main() {
 	}
 
 	databases := mustReadDatabasesConfigFile()
+	settings := readSettingsFile()
 
 	if len(os.Args[1:]) == 0 {
 		usage("Target database unspecified; where should I run the query?")
@@ -56,10 +59,10 @@ func main() {
 		usage("No SQL to run. Exiting.")
 	}
 
-	os.Exit(_main(databases, databasesArgs, query, newThreadSafePrintliner(os.Stdout).println))
+	os.Exit(_main(settings, databases, databasesArgs, query, newThreadSafePrintliner(os.Stdout).println))
 }
 
-func _main(databases map[string]database, databasesArgs []string, query string, println func(string)) int {
+func _main(settings *settings, databases map[string]database, databasesArgs []string, query string, println func(string)) int {
 	targetDatabases := []string{}
 	for _, k := range databasesArgs {
 		if _, ok := databases[k]; k != "all" && !ok {
@@ -81,12 +84,27 @@ func _main(databases map[string]database, databasesArgs []string, query string, 
 	var wg sync.WaitGroup
 	wg.Add(len(targetDatabases))
 
+	appServerSemaphors := make(map[string]*semaphore.Weighted)
+	for _, k := range targetDatabases {
+		var appServer = databases[k].AppServer
+		if appServer != "" && appServerSemaphors[appServer] == nil {
+			appServerSemaphors[appServer] = semaphore.NewWeighted(settings.MaxAppServerConnections)
+		}
+	}
+
 	sqlRunner := mustNewSQLRunner(quitContext, println, query, len(targetDatabases) > 1)
 
 	returnCode := 0
 	for _, k := range targetDatabases {
 		go func(db database, k string) {
 			defer wg.Done()
+			if db.AppServer != "" {
+				fmt.Print("Aquiring lock from app server", db.AppServer, "\n")
+				var sem = appServerSemaphors[db.AppServer]
+				sem.Acquire(quitContext, 1)
+				fmt.Print("Aquired lock from app server", db.AppServer, "\n")
+				defer sem.Release(1)
+			}
 			if r := sqlRunner.runSQL(db, k); !r {
 				returnCode = 1
 			}

@@ -94,6 +94,8 @@ var mysqlTests = tests{{
 },
 }
 
+var testSettings = settings{MaxAppServerConnections: 5}
+
 func Test_MySQL(t *testing.T) {
 	awaitDB(mySQL, t)
 
@@ -196,7 +198,7 @@ func runTests(ts tests, testConfig testConfig, t *testing.T) {
 	for _, tc := range ts {
 		t.Run(tc.name, func(t *testing.T) {
 			var buf = bytes.Buffer{}
-			_main(testConfig, tc.targetDBs, tc.query, newThreadSafePrintliner(&buf).println)
+			_main(&testSettings, testConfig, tc.targetDBs, tc.query, newThreadSafePrintliner(&buf).println)
 			var actual = strings.Split(buf.String(), "\n")
 			sort.Strings(actual)
 			if !reflect.DeepEqual(tc.expected, actual) {
