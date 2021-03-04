@@ -9,8 +9,11 @@ import (
 	"strings"
 )
 
+const DefaultMaxAppServerConnections = 5
+
 type settings struct {
 	MaxAppServerConnections int64
+	Databases               map[string]database
 }
 
 type database struct {
@@ -87,7 +90,7 @@ func mustReadDatabasesConfigFile() map[string]database {
 	return databases
 }
 
-func readSettingsFile() *settings {
+func mustReadSettings() *settings {
 	s := new(settings)
 	fileName := ".settings.json"
 	paths := getConfigPaths(fileName)
@@ -99,7 +102,10 @@ func readSettingsFile() *settings {
 		}
 	}
 	if s.MaxAppServerConnections == 0 {
-		s.MaxAppServerConnections = 5
+		s.MaxAppServerConnections = DefaultMaxAppServerConnections
+	}
+	if len(s.Databases) == 0 {
+		s.Databases = mustReadDatabasesConfigFile()
 	}
 	return s
 }

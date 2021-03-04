@@ -21,16 +21,16 @@ func main() {
 	if *flagHelp {
 		usage("")
 	}
+
+	settings := mustReadSettings()
+
 	if *flagListDBs { // for auto-completion
-		for dbName := range mustReadDatabasesConfigFile() {
+		for dbName := range settings.Databases {
 			fmt.Print(dbName, " ")
 		}
 		fmt.Println()
 		os.Exit(0)
 	}
-
-	databases := mustReadDatabasesConfigFile()
-	settings := readSettingsFile()
 
 	if len(os.Args[1:]) == 0 {
 		usage("Target database unspecified; where should I run the query?")
@@ -59,18 +59,18 @@ func main() {
 		usage("No SQL to run. Exiting.")
 	}
 
-	os.Exit(_main(settings, databases, databasesArgs, query, newThreadSafePrintliner(os.Stdout).println))
+	os.Exit(_main(settings, databasesArgs, query, newThreadSafePrintliner(os.Stdout).println))
 }
 
-func _main(settings *settings, databases map[string]database, databasesArgs []string, query string, println func(string)) int {
+func _main(settings *settings, databasesArgs []string, query string, println func(string)) int {
 	targetDatabases := []string{}
 	for _, k := range databasesArgs {
-		if _, ok := databases[k]; k != "all" && !ok {
+		if _, ok := settings.Databases[k]; k != "all" && !ok {
 			usage("Target database unknown: [%v]", k)
 		}
 		if k == "all" {
 			targetDatabases = nil
-			for k := range databases {
+			for k := range settings.Databases {
 				targetDatabases = append(targetDatabases, k)
 			}
 			break
@@ -86,7 +86,7 @@ func _main(settings *settings, databases map[string]database, databasesArgs []st
 
 	appServerSemaphors := make(map[string]*semaphore.Weighted)
 	for _, k := range targetDatabases {
-		var appServer = databases[k].AppServer
+		var appServer = settings.Databases[k].AppServer
 		if appServer != "" && appServerSemaphors[appServer] == nil {
 			appServerSemaphors[appServer] = semaphore.NewWeighted(settings.MaxAppServerConnections)
 		}
@@ -99,16 +99,14 @@ func _main(settings *settings, databases map[string]database, databasesArgs []st
 		go func(db database, k string) {
 			defer wg.Done()
 			if db.AppServer != "" {
-				fmt.Print("Aquiring lock from app server", db.AppServer, "\n")
 				var sem = appServerSemaphors[db.AppServer]
 				sem.Acquire(quitContext, 1)
-				fmt.Print("Aquired lock from app server", db.AppServer, "\n")
 				defer sem.Release(1)
 			}
 			if r := sqlRunner.runSQL(db, k); !r {
 				returnCode = 1
 			}
-		}(databases[k], k)
+		}(settings.Databases[k], k)
 	}
 
 	wg.Wait()
