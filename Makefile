@@ -4,7 +4,7 @@ ARTIFACT = sql
 
 build: GOOS ?= ${OS}
 build: test
-		GOOS=${GOOS} GOARCH=amd64 CGO_ENABLED=0 go build -o ${ARTIFACT} -a .
+		GO111MODULE=off GOOS=${GOOS} GOARCH=amd64 CGO_ENABLED=0 go build -o ${ARTIFACT} -a .
 
 test:
 	docker-compose --file test-docker-compose.yml up --abort-on-container-exit --force-recreate --renew-anon-volumes
