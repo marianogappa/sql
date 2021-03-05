@@ -1,4 +1,4 @@
-# sql [![Build Status](https://img.shields.io/travis/marianogappa/parseq.svg)](https://travis-ci.org/marianogappa/parseq) [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/MarianoGappa/sd/master/LICENSE)
+# sql [![Build Status](https://img.shields.io/travis/marianogappa/sql.svg)](https://travis-ci.org/marianogappa/sql) [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/MarianoGappa/sd/master/LICENSE)
 
 MySQL pipe
 
@@ -35,9 +35,18 @@ $ compinit
 
 ## Configuration
 
-Create a `.databases.json` dotfile in your home folder or in any [XDG-compliant](https://standards.freedesktop.org/basedir-spec/basedir-spec-latest.html) directory. [This](.databases.json.example) is an example file.
+Create a `.settings.json` dotfile in your home folder or in any [XDG-compliant](https://standards.freedesktop.org/basedir-spec/basedir-spec-latest.html) directory. [This](.settings.json.example) is an example file.
 
 `sql` decides to execute with MySQL or PostgreSQL depending on the `sqlType` property set for a database, *defaulting to to MySQL if not set.*
+
+(The older `.databases.json` is used if `.settings.json` file is not found or contains no databases.)
+
+## Command line flags
+
+- gs (Group Select): A database group defined in `.settings.json`. If multiple `-gs {groupName}` arguments are specified, the union of the databases is queried.
+- gf (Group Filter): A database group defined in `.settings.json`. If multiple `-gf {groupName}` arguments are specified, the intersection of the databases is queried.
+- ge (Group Exclude): A database group defined in `.settings.json`. Databases in this group are not queried.
+- da (Database Exclude): This database is not queried.
 
 ## Example usages
 
@@ -47,6 +56,18 @@ cat query.sql | sql test_db
 sed 's/2015/2016/g' query_for_2015.sql | sql db1 db2 db3
 
 sql all "SELECT * FROM users WHERE name = 'John'"
+
+sql -gs group1 "SELECT * FROM users"
+  (All databases in group1)
+
+sql -gf group1 -gf group2 "SELECT * FROM users"
+  (All databases that are in group1 AND group2)
+
+sql -ge group2 all "SELECT * FROM users"
+  (All databases, except if they are in group2)
+
+sql -de db2 all "SELECT * FROM users"
+  (All databases, except db2)
 ```
 
 ## Notes
@@ -56,9 +77,13 @@ sql all "SELECT * FROM users WHERE name = 'John'"
 - `sql` assumes that you have correctly configured SSH keys on all servers you `ssh` to
 - `sql` will error if all targeted databases do not have the same sql type.
 
+## Settings
+
+- MaxAppServerConnections: Too many concurrent ssh connections to the same app server might be rejected by the host.
+
 ## Beware!
 
-- please note that `~/.databases.json` will contain your database credentials in plain text; if this is a problem for you, don't use `sql`!
+- please note that `~/.settings.json` will contain your database credentials in plain text; if this is a problem for you, don't use `sql`!
 - `sql` is meant for automation of one-time lightweight ad-hoc `SELECT`s on many databases at once; it's not recommended for mission critical bash scripts that do destructive operations on production servers!
 - If you close an ongoing `sql` operation, spawned `mysql` and `ssh`->`mysql` processes will soon follow to their deaths, but the underlying mysql server query thread will complete, as long as it takes! https://github.com/marianogappa/sql/issues/7
 

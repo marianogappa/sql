@@ -9,6 +9,14 @@ import (
 	"strings"
 )
 
+const DefaultMaxAppServerConnections = 5
+
+type settings struct {
+	MaxAppServerConnections int64
+	Databases               map[string]database
+	DatabaseGroups          map[string][]string
+}
+
 type database struct {
 	AppServer string
 	DbServer  string
@@ -18,9 +26,8 @@ type database struct {
 	SQLType   string
 }
 
-func mustReadDatabasesConfigFile() map[string]database {
+func getConfigPaths(fileName string) []string {
 	var paths []string
-	databases := map[string]database{}
 
 	usr, err := user.Current()
 	if err != nil {
@@ -33,7 +40,7 @@ func mustReadDatabasesConfigFile() map[string]database {
 	if xdgHome == "" {
 		xdgHome = fmt.Sprintf("%v/.config/", home)
 	}
-	xdgHome += "sql/.databases.json"
+	xdgHome += fmt.Sprintf("sql/%v", fileName)
 
 	paths = append(paths, xdgHome)
 
@@ -41,21 +48,35 @@ func mustReadDatabasesConfigFile() map[string]database {
 	xdgConfigDirs = append(xdgConfigDirs, "/etc/xdg")
 	for _, d := range xdgConfigDirs {
 		if d != "" {
-			paths = append(paths, fmt.Sprintf("%v/sql/.databases.json", d))
+			paths = append(paths, fmt.Sprintf("%v/sql/%v", d, fileName))
 		}
 	}
 
-	paths = append(paths, fmt.Sprintf("%v/.databases.json", home))
+	paths = append(paths, fmt.Sprintf("%v/%v", home, fileName))
+	return paths
+}
 
+func readFileContent(paths []string) ([]byte, error) {
 	var byts []byte
+	var err error
 	for _, p := range paths {
 		if byts, err = ioutil.ReadFile(p); err != nil {
 			continue
 		}
 		break
 	}
+	return byts, err
+}
+
+func mustReadDatabasesConfigFile() map[string]database {
+	databases := map[string]database{}
+
+	fileName := ".databases.json"
+	paths := getConfigPaths(fileName)
+	byts, err := readFileContent(paths)
 	if err != nil {
-		usage("Couldn't find .databases.json in the following paths [%v]. err=%v", paths, err)
+		usage("Couldn't find .%v in the following paths [%v]. err=%v", fileName, paths, err)
+
 	}
 
 	err = json.Unmarshal(byts, &databases)
@@ -68,4 +89,24 @@ func mustReadDatabasesConfigFile() map[string]database {
 	}
 
 	return databases
+}
+
+func mustReadSettings() *settings {
+	s := new(settings)
+	fileName := ".settings.json"
+	paths := getConfigPaths(fileName)
+	byts, err := readFileContent(paths)
+	if err == nil {
+		err = json.Unmarshal(byts, s)
+		if err != nil {
+			usage("Found but couldn't JSON unmarshal %v. Looked like this:\n\n%v\n\nerr=%v", fileName, string(byts), err)
+		}
+	}
+	if s.MaxAppServerConnections == 0 {
+		s.MaxAppServerConnections = DefaultMaxAppServerConnections
+	}
+	if len(s.Databases) == 0 {
+		s.Databases = mustReadDatabasesConfigFile()
+	}
+	return s
 }

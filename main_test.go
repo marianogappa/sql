@@ -46,25 +46,8 @@ var baseTests = tests{
 		},
 	},
 	{
-		name:      "reads from all databases with the all keyword",
-		targetDBs: []string{"all"},
-		query:     "SELECT id FROM table1",
-		expected: []string{
-			"",
-			"db1\t1",
-			"db1\t2",
-			"db1\t3",
-			"db2\t1",
-			"db2\t2",
-			"db2\t3",
-			"db3\t1",
-			"db3\t2",
-			"db3\t3",
-		},
-	},
-	{
 		name:      "reads two fields from all databases",
-		targetDBs: []string{"all"},
+		targetDBs: []string{"db1", "db2", "db3"},
 		query:     "SELECT id, name FROM table1",
 		expected: []string{
 			"",
@@ -148,28 +131,8 @@ func Test_Mix_Mysql_PostgreSQL(t *testing.T) {
 				},
 			},
 			{
-				name:      "reads from all databases with the all keyword",
-				targetDBs: []string{"all"},
-				query:     "SELECT id FROM table1",
-				expected: []string{
-					"",
-					"db1\t1",
-					"db1\t2",
-					"db1\t3",
-					"db2\t1",
-					"db2\t2",
-					"db2\t3",
-					"db3\t1",
-					"db3\t2",
-					"db3\t3",
-					"db4\t1",
-					"db4\t2",
-					"db4\t3",
-				},
-			},
-			{
 				name:      "reads two fields from all databases",
-				targetDBs: []string{"all"},
+				targetDBs: []string{"db1", "db2", "db3", "db4"},
 				query:     "SELECT id, name FROM table1",
 				expected: []string{
 					"",
@@ -196,7 +159,8 @@ func runTests(ts tests, testConfig testConfig, t *testing.T) {
 	for _, tc := range ts {
 		t.Run(tc.name, func(t *testing.T) {
 			var buf = bytes.Buffer{}
-			_main(testConfig, tc.targetDBs, tc.query, newThreadSafePrintliner(&buf).println)
+			var testSettings = settings{MaxAppServerConnections: 5, Databases: testConfig}
+			_main(&testSettings, tc.targetDBs, tc.query, newThreadSafePrintliner(&buf).println)
 			var actual = strings.Split(buf.String(), "\n")
 			sort.Strings(actual)
 			if !reflect.DeepEqual(tc.expected, actual) {

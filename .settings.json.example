@@ -1,0 +1,34 @@
+{
+  "MaxAppServerConnections": 8,
+  "Databases": {
+    "local": {
+        "dbName": "test_database"
+    },
+    "staging": {
+        "appServer": "staging.server.com",
+        "dbName": "staging_database",
+        "dbServer": "staging.db.server.com",
+        "user": "root",
+        "pass": ""
+    },
+    "prod": {
+        "appServer": "prod.server.com",
+        "dbName": "prod_database",
+        "dbServer": "prod.db.server.com",
+        "user": "user",
+        "pass": "pass",
+        "sqlType": "mysql"
+    },
+    "postgresdb": {
+        "appServer": "pg.server.com",
+        "dbName": "pg_database",
+        "dbServer": "pg.db.server.com",
+        "user": "postgres",
+        "pass": "postgres",
+        "sqlType": "postgres"
+    }
+  },
+  "DatabaseGroups": {
+    "group1": [ "staging","local" ]
+  }
+}
