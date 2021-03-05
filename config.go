@@ -14,6 +14,7 @@ const DefaultMaxAppServerConnections = 5
 type settings struct {
 	MaxAppServerConnections int64
 	Databases               map[string]database
+	DatabaseGroups          map[string][]string
 }
 
 type database struct {
