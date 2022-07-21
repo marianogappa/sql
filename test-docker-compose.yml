@@ -9,7 +9,7 @@ services:
       - test-mysql
       - test-postgres
   test-mysql:
-    image: mysql:5
+    image: mysql:5.7
     volumes:
       - ./mysql_test_schemas.sql:/docker-entrypoint-initdb.d/mysql_test_schemas.sql
     environment:
@@ -21,4 +21,5 @@ services:
       - ./postgres_test_schemas.sql:/docker-entrypoint-initdb.d/postgres_test_schemas.sql
     environment:
       POSTGRES_USER: root
-      POSTGRES_PASSWORD:
+      POSTGRES_PASSWORD: 
+      POSTGRES_HOST_AUTH_METHOD: trust
