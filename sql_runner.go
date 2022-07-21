@@ -44,7 +44,7 @@ var sqlTypeToOptions = map[sqlType]sqlOptions{
 		"mysql",
 		"-u%v",
 		"-h%v",
-		"-p%v",
+		"MYSQL_PWD=%v",
 		"%v",
 		"-Nsre",
 	},
@@ -52,7 +52,7 @@ var sqlTypeToOptions = map[sqlType]sqlOptions{
 		"mysql",
 		"-u%v",
 		"-h%v",
-		"-p%v",
+		"MYSQL_PWD=%v",
 		"%v",
 		"-Ee",
 	},
@@ -125,12 +125,7 @@ func (sr *sqlRunner) runSQL(db database, key string) bool {
 		prepend = key + "\t"
 	}
 
-	options := ""
-	if typ == postgreSQL {
-		options = fmt.Sprintf("%v %v %v %v %v", sqlOptions.cmd, userOption, hostOption, dbOption, sqlOptions.flags)
-	} else {
-		options = fmt.Sprintf("%v %v %v %v %v %v", sqlOptions.cmd, dbOption, userOption, passOption, hostOption, sqlOptions.flags)
-	}
+	options := fmt.Sprintf("%v %v %v %v %v", sqlOptions.cmd, userOption, hostOption, dbOption, sqlOptions.flags)
 
 	var cmd *exec.Cmd
 	if db.AppServer != "" {
@@ -149,10 +144,8 @@ func (sr *sqlRunner) runSQL(db database, key string) bool {
 		cmd = exec.CommandContext(sr.quitContext, args[0], args[1:]...)
 	}
 
-	if typ == postgreSQL {
-		cmd.Env = os.Environ()
-		cmd.Env = append(cmd.Env, passOption)
-	}
+	cmd.Env = os.Environ()
+	cmd.Env = append(cmd.Env, passOption)
 
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
