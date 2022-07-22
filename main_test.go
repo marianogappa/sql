@@ -99,9 +99,9 @@ func Test_MySQL(t *testing.T) {
 
 	var (
 		testConfig = testConfig{
-			"db1": database{DbServer: "test-mysql", DbName: "db1", User: "root", Pass: "", SQLType: "mysql"},
-			"db2": database{DbServer: "test-mysql", DbName: "db2", User: "root", Pass: "", SQLType: ""},
-			"db3": database{DbServer: "test-mysql", DbName: "db3", User: "root", Pass: "", SQLType: ""},
+			"db1": database{DbServer: "mysql", DbName: "db1", User: "root", Pass: "", SQLType: "mysql"},
+			"db2": database{DbServer: "mysql", DbName: "db2", User: "root", Pass: "", SQLType: ""},
+			"db3": database{DbServer: "mysql", DbName: "db3", User: "root", Pass: "", SQLType: ""},
 		}
 	)
 	runTests(baseTests, testConfig, t)
@@ -113,9 +113,9 @@ func Test_PostgreSQL(t *testing.T) {
 
 	var (
 		testConfig = testConfig{
-			"db1": database{DbServer: "test-postgres", DbName: "db1", User: "root", Pass: "", SQLType: "postgres"},
-			"db2": database{DbServer: "test-postgres", DbName: "db2", User: "root", Pass: "", SQLType: "postgres"},
-			"db3": database{DbServer: "test-postgres", DbName: "db3", User: "root", Pass: "", SQLType: "postgres"},
+			"db1": database{DbServer: "postgres", DbName: "db1", User: "root", Pass: "", SQLType: "postgres"},
+			"db2": database{DbServer: "postgres", DbName: "db2", User: "root", Pass: "", SQLType: "postgres"},
+			"db3": database{DbServer: "postgres", DbName: "db3", User: "root", Pass: "", SQLType: "postgres"},
 		}
 	)
 	runTests(baseTests, testConfig, t)
@@ -127,10 +127,10 @@ func Test_Mix_Mysql_PostgreSQL(t *testing.T) {
 
 	var (
 		testConfig = testConfig{
-			"db1": database{DbServer: "test-postgres", DbName: "db1", User: "root", Pass: "", SQLType: "postgres"},
-			"db2": database{DbServer: "test-postgres", DbName: "db2", User: "root", Pass: "", SQLType: "postgres"},
-			"db3": database{DbServer: "test-mysql", DbName: "db3", User: "root", Pass: "", SQLType: ""},
-			"db4": database{DbServer: "test-mysql", DbName: "db1", User: "root", Pass: "", SQLType: "mysql"},
+			"db1": database{DbServer: "postgres", DbName: "db1", User: "root", Pass: "", SQLType: "postgres"},
+			"db2": database{DbServer: "postgres", DbName: "db2", User: "root", Pass: "", SQLType: "postgres"},
+			"db3": database{DbServer: "mysql", DbName: "db3", User: "root", Pass: "", SQLType: ""},
+			"db4": database{DbServer: "mysql", DbName: "db1", User: "root", Pass: "", SQLType: "mysql"},
 		}
 		ts = tests{
 			{
@@ -207,8 +207,8 @@ func runTests(ts tests, testConfig testConfig, t *testing.T) {
 }
 
 func awaitDB(typ sqlType, t *testing.T) {
-	var pgTestCmds = []string{"-h", "test-postgres", "-U", "root", "-d", "db1", "-c", "SELECT * FROM table1"}
-	var msTestCmds = []string{"-h", "test-mysql", "-u", "root", "-e", "SELECT * FROM db1.table1"}
+	var pgTestCmds = []string{"-h", "postgres", "-U", "root", "-d", "db1", "-c", "SELECT * FROM table1"}
+	var msTestCmds = []string{"-h", "mysql", "-u", "root", "-e", "SELECT * FROM db1.table1"}
 	var err error
 	var c *exec.Cmd
 	for i := 1; i <= 30; i++ {

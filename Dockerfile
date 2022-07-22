@@ -1,5 +1,7 @@
-FROM golang:1.11
+FROM golang:1.18.3-alpine3.16
 
-RUN apt-get update && apt-get install -y --no-install-recommends default-mysql-client postgresql-client && rm -rf /var/lib/apt/lists/*
+ENV CGO_ENABLED=0
+
+RUN apk add --no-cache mysql-client postgresql-client
 
 ENTRYPOINT [ "go", "test", "-v", "." ]

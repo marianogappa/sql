@@ -1,4 +1,4 @@
-version: '3'
+version: "3.9"
 services:
   test:
     build: .
@@ -6,16 +6,16 @@ services:
       - "$PWD:/go/src/sql"
     working_dir: /go/src/sql
     depends_on:
-      - test-mysql
-      - test-postgres
-  test-mysql:
+      - mysql
+      - postgres
+  mysql:
     image: mysql:5.7
     volumes:
       - ./mysql_test_schemas.sql:/docker-entrypoint-initdb.d/mysql_test_schemas.sql
     environment:
       MYSQL_ROOT_PASSWORD:
       MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
-  test-postgres:
+  postgres:
     image: postgres:9-alpine
     volumes:
       - ./postgres_test_schemas.sql:/docker-entrypoint-initdb.d/postgres_test_schemas.sql
